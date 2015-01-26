@@ -2,19 +2,19 @@ package main
 
 import (
     "bytes"
+    "flag"
     "fmt"
     "io"
     "net"
     "strconv"
 )
 
-var PORT int = 4000
 var BUFSIZE int = 512
 
 type Client struct {
     Conn net.Conn
-    Read chan string
-    Write chan string
+    Read <-chan string
+    Write chan<- string
 }
 
 func (c *Client) Close() {
@@ -77,7 +77,7 @@ func debugClientHandler(c <-chan Client) {
                 client.Write <- s + "\n"
                 fmt.Printf("read: '%v'\n", s)
                 if (s == "exit") {
-                    fmt.Println("closed client on request")
+                    fmt.Println("dropped client on request")
                     client.Close()
                 }
             }
@@ -86,10 +86,12 @@ func debugClientHandler(c <-chan Client) {
 }
 
 func main() {
-    if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", PORT)); err != nil {
+    port := flag.Uint("port", 4000, "port on which to listen for connections")
+    flag.Parse()
+    if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", *port)); err != nil {
         fmt.Println("Failed to listen", err)
     } else {
-        fmt.Printf("Listening on localhost:%v\n", PORT)
+        fmt.Printf("Listening on port %v\n", *port)
         c := make(chan Client)
         // Handle connected clients.
         go debugClientHandler(c)
