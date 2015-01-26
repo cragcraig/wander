@@ -33,9 +33,9 @@ func readLines(c chan<- string, r io.Reader) {
             return
         }
         for i := 0; i < n; i++ {
-            c := b[i]
-            if strconv.IsPrint(rune(c)) {
-                buffer.WriteByte(c)
+            next := b[i]
+            if strconv.IsPrint(rune(next)) {
+                buffer.WriteByte(next)
             } else if (buffer.Len() != 0) {
                 c <- buffer.String()
                 buffer.Reset()
