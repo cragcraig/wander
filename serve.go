@@ -16,14 +16,14 @@ type Client struct {
     Write chan<- string
 }
 
-func (c *Client) Close() {
-    close(c.Write)
-    c.Conn.Close()
+func (cl *Client) Close() {
+    close(cl.Write)
+    cl.Conn.Close()
 }
 
-func readLines(m chan<- string, r io.Reader) {
+func readLines(c chan<- string, r io.Reader) {
     defer func() {
-        close(m)
+        close(c)
     }()
     var buffer bytes.Buffer
     b := make([]byte, BUFSIZE)
@@ -37,15 +37,15 @@ func readLines(m chan<- string, r io.Reader) {
             if strconv.IsPrint(rune(c)) {
                 buffer.WriteByte(c)
             } else if (buffer.Len() != 0) {
-                m <- buffer.String()
+                c <- buffer.String()
                 buffer.Reset()
             }
         }
     }
 }
 
-func writeLines(m <-chan string, w io.Writer) {
-    for s := range m {
+func writeLines(c <-chan string, w io.Writer) {
+    for s := range c {
         w.Write([]byte(s))
     }
 }
