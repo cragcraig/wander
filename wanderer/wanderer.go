@@ -3,11 +3,11 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/gnarlyskier/wander"
+    "github.com/gnarlyskier/wander/core"
 )
 
 // Debug handler for clients that simply echos.
-func debugClientHandler(c <-chan wander.Client) {
+func debugClientHandler(c <-chan core.Client) {
     for client := range c {
         // Echo lines and handle exit commands.
         go func() {
@@ -28,10 +28,10 @@ func main() {
     flag.Parse()
 
     // Handle connected clients.
-    c := make(chan wander.Client)
+    c := make(chan core.Client)
     go debugClientHandler(c)
 
-    if err := wander.ServeForever(*port, c); err != nil {
+    if err := core.ServeForever(*port, c); err != nil {
         fmt.Printf("Failed start server: %v", err)
     }
 }

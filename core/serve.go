@@ -1,4 +1,4 @@
-package wander
+package core
 
 import (
     "bytes"
