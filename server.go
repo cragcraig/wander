@@ -18,6 +18,7 @@ type Client struct {
 }
 
 func (c *Client) Close() {
+    close(c.Write)
     c.Conn.Close()
 }
 
