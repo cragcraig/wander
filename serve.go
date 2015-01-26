@@ -1,8 +1,7 @@
-package main
+package wander
 
 import (
     "bytes"
-    "flag"
     "fmt"
     "io"
     "net"
@@ -68,33 +67,12 @@ func acceptConnectionsForever(ln net.Listener, c chan<- Client) {
     }
 }
 
-// Debug handler for clients that simply echos.
-func debugClientHandler(c <-chan Client) {
-    for client := range c {
-        // Echo lines and handle exit commands.
-        go func() {
-            for s := range client.Read {
-                client.Write <- s + "\n"
-                fmt.Printf("read: '%v'\n", s)
-                if (s == "exit") {
-                    fmt.Println("dropped client on request")
-                    client.Close()
-                }
-            }
-        }()
-    }
-}
-
-func main() {
-    port := flag.Uint("port", 4000, "port on which to listen for connections")
-    flag.Parse()
-    if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", *port)); err != nil {
-        fmt.Println("Failed to listen", err)
+func ServeForever(port uint, c chan<- Client) error {
+    if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", port)); err != nil {
+        return err
     } else {
-        fmt.Printf("Listening on port %v\n", *port)
-        c := make(chan Client)
-        // Handle connected clients.
-        go debugClientHandler(c)
+        fmt.Printf("Listening on port %v\n", port)
         acceptConnectionsForever(ln, c)
+        return nil
     }
 }

@@ -1,0 +1,3 @@
+** BUILDING THE SERVER **
+go build github.com/gnarlyskier/wander/wanderer
+
