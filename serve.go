@@ -11,14 +11,14 @@ import (
 var BUFSIZE int = 512
 
 type Client struct {
-    Conn net.Conn
+    conn net.Conn
     Read <-chan string
     Write chan<- string
 }
 
 func (cl *Client) Close() {
     close(cl.Write)
-    cl.Conn.Close()
+    cl.conn.Close()
 }
 
 func readLines(c chan<- string, r io.Reader) {
