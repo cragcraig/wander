@@ -9,7 +9,7 @@ import (
 )
 
 var PORT int = 4000
-var BUFSIZE int = 4028
+var BUFSIZE int = 512
 
 type Client struct {
     Conn net.Conn
@@ -26,7 +26,7 @@ func readLines(m chan<- string, r io.Reader) {
         close(m)
     }()
     var buffer bytes.Buffer
-    b := make([]byte, 255)
+    b := make([]byte, BUFSIZE)
     for {
         n, err := r.Read(b)
         if err != nil {
