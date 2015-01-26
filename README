@@ -6,7 +6,7 @@ go build github.com/gnarlyskier/wander/wanderer
 
 *** RUNNING THE SERVER ***
 export PORT=4040
-./wander --port=$PORT
+./wanderer --port=$PORT
 
 *** CONNECTING A CLIENT ***
 telnet localhost $PORT
