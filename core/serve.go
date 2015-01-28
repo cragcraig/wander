@@ -16,6 +16,11 @@ type Client struct {
     Write chan<- string
 }
 
+func (cl *Client) Prompt() string {
+    cl.Write <- "> "
+    return <-cl.Read
+}
+
 func (cl *Client) Close() {
     close(cl.Write)
     cl.conn.Close()
