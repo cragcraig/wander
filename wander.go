@@ -13,7 +13,7 @@ func debugUserHandler(c <-chan core.ActiveUser) {
         go func() {
             for s := range user.Conn.Read {
                 user.Conn.Write <- s + "\n"
-                fmt.Printf("read: '%v'\n", s)
+                fmt.Printf("%v: %v\n", user.Id, s)
                 if (s == "exit") {
                     fmt.Println("dropped user on request")
                     user.Conn.Close()

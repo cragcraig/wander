@@ -6,7 +6,7 @@ import (
 )
 
 type ActiveUser struct {
-    ConnectionId int
+    Id int
     Conn Connection
     timestamp time.Time
 }
