@@ -24,7 +24,6 @@ func (conn *Connection) Prompt() (string, bool) {
 
 func (conn *Connection) Close() {
 	conn.netConn.Close()
-	close(conn.Write)
 }
 
 func readLines(c chan<- string, r io.Reader) {
