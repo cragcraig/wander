@@ -27,9 +27,7 @@ func (conn *Connection) Close() {
 }
 
 func readLines(c chan<- string, r io.Reader) {
-	defer func() {
-		close(c)
-	}()
+	defer close(c)
 	var buffer bytes.Buffer
 	b := make([]byte, BUFSIZE)
 	for {

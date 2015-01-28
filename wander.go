@@ -15,7 +15,7 @@ func debugUserHandler(c <-chan core.ActiveUser) {
 				user.Conn.Write <- s + "\n"
 				fmt.Printf("%v: %v\n", user.Id, s)
 				if s == "exit" {
-					fmt.Println("dropped user on request")
+					fmt.Printf("dropped user %v on request\n", user.Id)
 					user.Conn.Close()
 				}
 			}

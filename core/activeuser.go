@@ -12,9 +12,7 @@ type ActiveUser struct {
 }
 
 func AuthNewUsers(c <-chan Connection, users chan<- ActiveUser) {
-	defer func() {
-		close(users)
-	}()
+	defer close(users)
 	for conn := range c {
 		go authConnection(conn, users)
 	}
