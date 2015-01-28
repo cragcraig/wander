@@ -6,29 +6,29 @@ import (
 )
 
 type ActiveUser struct {
-    ClientId int
-    Client Client
+    ConnectionId int
+    Conn Connection
     timestamp time.Time
 }
 
-func AuthNewUsers(c <-chan Client, conns chan<- ActiveUser) {
+func AuthNewUsers(c <-chan Connection, users chan<- ActiveUser) {
     defer func() {
-        close(conns)
+        close(users)
     }()
-    for cl := range c {
-        go authClient(cl, conns)
+    for conn := range c {
+        go authConnection(conn, users)
     }
 }
 
-func authClient(cl Client, conns chan<- ActiveUser) {
-    cl.Write <- "Welcome to the Napoleonic Wars!\n"
+func authConnection(conn Connection, users chan<- ActiveUser) {
+    conn.Write <- "Welcome to the Napoleonic Wars!\n"
     for {
-        cl.Write <- "What is your client id?\n"
-        id, err := strconv.Atoi(cl.Prompt())
+        conn.Write <- "What is your client id?\n"
+        id, err := strconv.Atoi(conn.Prompt())
         if err == nil {
-            conns <- ActiveUser{id, cl, time.Now()}
+            users <- ActiveUser{id, conn, time.Now()}
             return
         }
-        cl.Write <- "Bad answer...\n"
+        conn.Write <- "Bad answer...\n"
     }
 }

@@ -10,20 +10,20 @@ import (
 
 var BUFSIZE int = 512
 
-type Client struct {
-    conn net.Conn
+type Connection struct {
+    netConn net.Conn
     Read <-chan string
     Write chan<- string
 }
 
-func (cl *Client) Prompt() string {
-    cl.Write <- "> "
-    return <-cl.Read
+func (conn *Connection) Prompt() string {
+    conn.Write <- "> "
+    return <-conn.Read
 }
 
-func (cl *Client) Close() {
-    close(cl.Write)
-    cl.conn.Close()
+func (conn *Connection) Close() {
+    close(conn.Write)
+    conn.netConn.Close()
 }
 
 func readLines(c chan<- string, r io.Reader) {
@@ -55,24 +55,24 @@ func writeLines(c <-chan string, w io.Writer) {
     }
 }
 
-func detachConnection(conn net.Conn) Client {
+func detachConnection(conn net.Conn) Connection {
     r := make(chan string)
     go readLines(r, conn)
     w := make(chan string)
     go writeLines(w, conn)
-    return Client{conn, r, w}
+    return Connection{conn, r, w}
 }
 
-func acceptConnectionsForever(ln net.Listener, c chan<- Client) {
+func acceptConnectionsForever(ln net.Listener, c chan<- Connection) {
     for {
         if conn, err := ln.Accept(); err == nil {
-            fmt.Println("Client connected")
+            fmt.Println("Connection connected")
             c <- detachConnection(conn)
         }
     }
 }
 
-func ServeForever(port uint, c chan<- Client) error {
+func ServeForever(port uint, c chan<- Connection) error {
     if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", port)); err != nil {
         return err
     } else {

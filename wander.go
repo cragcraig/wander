@@ -6,17 +6,17 @@ import (
     "github.com/gnarlyskier/wander/core"
 )
 
-// Debug handler for clients that simply echos.
+// Debug handler for users that simply echos.
 func debugUserHandler(c <-chan core.ActiveUser) {
     for user := range c {
         // Echo lines and handle exit commands.
         go func() {
-            for s := range user.Client.Read {
-                user.Client.Write <- s + "\n"
+            for s := range user.Conn.Read {
+                user.Conn.Write <- s + "\n"
                 fmt.Printf("read: '%v'\n", s)
                 if (s == "exit") {
                     fmt.Println("dropped user on request")
-                    user.Client.Close()
+                    user.Conn.Close()
                 }
             }
         }()
@@ -27,14 +27,14 @@ func main() {
     port := flag.Uint("port", 4000, "port on which to listen for connections")
     flag.Parse()
 
-    clients := make(chan core.Client)
+    conns := make(chan core.Connection)
     users := make(chan core.ActiveUser)
-    go core.AuthNewUsers(clients, users)
+    go core.AuthNewUsers(conns, users)
 
     // Handle connected users.
     go debugUserHandler(users)
 
-    if err := core.ServeForever(*port, clients); err != nil {
+    if err := core.ServeForever(*port, conns); err != nil {
         fmt.Printf("Failed start server: %v", err)
     }
 }
