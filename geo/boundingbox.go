@@ -67,18 +67,34 @@ func (p *projection) checkOverlap(o *projection) bool {
     return p.min < o.max && p.max > o.min
 }
 
+func (p *projection) getOverlap(o *projection) float64 {
+    return math.Min(p.max, o.max) - math.Max(p.min, o.min)
+}
+
+type Overlap struct {
+    Amount float64
+    Axis vect
+}
+
 // Implements the Separating Axis Theorm (see http://www.codezealot.org/archives/55)
-func (box *BoundingBox) CheckCollision(other *BoundingBox) bool {
+func (box *BoundingBox) CheckCollision(other *BoundingBox) *Overlap {
+    overlap := Overlap{Amount: math.MaxFloat64}
     axes := append(box.computeNormals(), other.computeNormals()...)
     for i := range axes {
         axis := axes[i]
         proj1 := box.project(axis)
         proj2 := other.project(axis)
         if !proj1.checkOverlap(&proj2) {
-            return false
+            return nil
+        } else {
+            // Keep track of the minimum magnitude and axis of overlap.
+            o := proj1.getOverlap(&proj2)
+            if (o < overlap.Amount) {
+                overlap.Amount = o
+                overlap.Axis = axis
+            }
         }
     }
-    return true
+    return &overlap
 }
-
 
