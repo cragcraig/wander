@@ -32,7 +32,7 @@ func (poly Polygon) Project(axis Vect) Projection {
     return Projection{min, max}
 }
 
-func (poly Polygon) createTransform(f func(Vect) Vect) Polygon {
+func (poly Polygon) applyTransform(f func(Vect) Vect) Polygon {
     ret := Polygon{make([]Vect, len(poly.Vertices))}
     for i := range poly.Vertices {
         ret.Vertices[i] = f(poly.Vertices[i])
@@ -41,13 +41,13 @@ func (poly Polygon) createTransform(f func(Vect) Vect) Polygon {
 }
 
 func (poly Polygon) Rotate(heading Vect) Shape {
-    return poly.createTransform(func(v Vect) Vect {
+    return poly.applyTransform(func(v Vect) Vect {
         return v.Rotate(heading)
     })
 }
 
 func (poly Polygon) Translate(dist Vect) Shape {
-    return poly.createTransform(func(v Vect) Vect {
+    return poly.applyTransform(func(v Vect) Vect {
         return v.Add(dist)
     })
 }
