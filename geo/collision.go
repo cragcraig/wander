@@ -16,11 +16,11 @@ func (p Projection) GetOverlapAmount(o Projection) float64 {
 
 type Overlap struct {
     Amount float64
-    Axis Vect
+    Heading Vect
 }
 
 // Implements the Separating Axis Theorm (see http://www.codezealot.org/archives/55)
-// Polygons MUST be convex.
+// Polygons MUST be convex and axes must be normalized.
 func checkCollision(shape1 Shape, shape2 Shape, axes []Vect) *Overlap {
     overlap := Overlap{Amount: math.MaxFloat64}
     for i := range axes {
@@ -34,7 +34,7 @@ func checkCollision(shape1 Shape, shape2 Shape, axes []Vect) *Overlap {
             o := proj1.GetOverlapAmount(proj2)
             if (o < overlap.Amount) {
                 overlap.Amount = o
-                overlap.Axis = axis
+                overlap.Heading = axis
             }
         }
     }
