@@ -6,7 +6,8 @@ type Circle struct {
 }
 
 func (cir Circle) Project(axis Vect) Projection {
-    p := axis.Dot(cir.Offset)
+   // The axis must be normalized to get accurate projections
+   p := axis.Dot(cir.Offset)
     return Projection{p - cir.Radius, p + cir.Radius}
 }
 
