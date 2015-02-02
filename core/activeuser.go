@@ -7,28 +7,32 @@ import (
 
 type ActiveUser struct {
 	Id        int
+    Nick      string
 	Conn      Connection
 	timestamp time.Time
 }
 
 func AuthNewUsers(c <-chan Connection, users chan<- ActiveUser) {
 	defer close(users)
+    nextId := 0
 	for conn := range c {
-		go authConnection(conn, users)
+		go authConnection(nextId, conn, users)
+        nextId++
 	}
 }
 
-func authConnection(conn Connection, users chan<- ActiveUser) {
-	conn.Write <- "Welcome to the Napoleonic Wars!\n"
+func authConnection(id int, conn Connection, users chan<- ActiveUser) {
+	conn.Write <- "Welcome to a Science Fiction Universe!\n"
 	for {
-		conn.Write <- "What is your client id?\n"
-		val, ok := conn.Prompt()
+		conn.Write <- "By what name would you like to be known?\n"
+		nick, ok := conn.Prompt()
 		if !ok {
 			// Client disconnected.
 			return
 		}
-		if id, err := strconv.Atoi(val); err == nil {
-			users <- ActiveUser{id, conn, time.Now()}
+        nick = strings.TrimSpace(nick)
+		if nick != "" {
+			users <- ActiveUser{id, nick, conn, time.Now()}
 			return
 		}
 		conn.Write <- "Bad answer...\n"
