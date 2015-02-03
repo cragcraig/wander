@@ -46,7 +46,7 @@ func readLines(c chan<- string, r io.Reader) {
 
 func writeLines(c <-chan string, w io.Writer) {
 	for s := range c {
-        // TODO(craig): Backspace over prompt and characters in buffer
+        // TODO(craig): Clear line and reprompt after
 		w.Write([]byte(s))
 	}
 }
