@@ -14,15 +14,11 @@ type Connection struct {
 	netConn net.Conn
 	Read    <-chan string
 	Write   chan<- string
-}
-
-func (conn *Connection) Prompt() (string, bool) {
-	conn.Write <- "> "
-	v, ok := <-conn.Read
-	return v, ok
+	Prompt  chan<- bool
 }
 
 func (conn *Connection) Close() {
+	fmt.Printf("Closed connection to %v\n", conn.netConn.RemoteAddr())
 	conn.netConn.Close()
 }
 
@@ -37,6 +33,7 @@ func readLines(c chan<- string, r io.Reader) {
 		}
 		for i := 0; i < n; i++ {
 			next := b[i]
+            // TODO(craig): Handle backspace
 			if strconv.IsPrint(rune(next)) {
 				buffer.WriteByte(next)
 			} else if buffer.Len() != 0 {
@@ -49,7 +46,15 @@ func readLines(c chan<- string, r io.Reader) {
 
 func writeLines(c <-chan string, w io.Writer) {
 	for s := range c {
+        // TODO(craig): Backspace over prompt and characters in buffer
 		w.Write([]byte(s))
+	}
+}
+
+func writePrompts(p <-chan bool, w chan<- string) {
+	for _ = range p {
+        // TODO(craig): Print contents of buffer (if typing was interrupted)
+		w <- "> "
 	}
 }
 
@@ -58,13 +63,15 @@ func detachConnection(conn net.Conn) Connection {
 	go readLines(r, conn)
 	w := make(chan string)
 	go writeLines(w, conn)
-	return Connection{conn, r, w}
+	p := make(chan bool)
+	go writePrompts(p, w)
+	return Connection{conn, r, w, p}
 }
 
 func acceptConnectionsForever(ln net.Listener, c chan<- Connection) {
 	for {
 		if conn, err := ln.Accept(); err == nil {
-			fmt.Println("Connection connected")
+			fmt.Printf("Accepted new connection from %v\n", conn.RemoteAddr())
 			c <- detachConnection(conn)
 		}
 	}

@@ -1,11 +1,7 @@
 package env
 
 type Interactable interface {
-    GetName() string
-    GetHandler(verb Verb) VerbHandler
-    DoesMatchHint(hint string) bool
-}
-
-func (inter *Interactable) String() string {
-    return inter.GetName()
+	GetName() string
+	GetHandler(verb Verb) VerbHandler
+	DoesMatchHint(hint string) bool
 }

@@ -4,22 +4,28 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gnarlyskier/wander/core"
+	"github.com/gnarlyskier/wander/env"
+	"github.com/gnarlyskier/wander/simpleverbs"
 )
 
-// Debug handler for users that simply echos.
-func debugUserHandler(c <-chan core.ActiveUser) {
+func userRoom(user core.ActiveUser, actions chan<- env.Action) {
+	actions <- env.EnterRoom.CreateUserAction(user, nil, nil, nil)
+	defer func() {
+		actions <- env.LeaveRoom.CreateUserAction(user, nil, nil, nil)
+	}()
+	for cmd := range user.Conn.Read {
+		switch cmd {
+		case "exit":
+			user.Conn.Close()
+		default:
+			actions <- simpleverbs.Talk.CreateUserAction(user, nil, nil, []string{cmd + "\n"})
+		}
+	}
+}
+
+func demoRoom(c <-chan core.ActiveUser, room env.Room) {
 	for user := range c {
-		// Echo lines and handle exit commands.
-		go func() {
-			for s := range user.Conn.Read {
-				user.Conn.Write <- s + "\n"
-				fmt.Printf("%v: %v\n", user.Id, s)
-				if s == "exit" {
-					fmt.Printf("dropped user %v on request\n", user.Id)
-					user.Conn.Close()
-				}
-			}
-		}()
+		go userRoom(user, room.Actions)
 	}
 }
 
@@ -32,7 +38,7 @@ func main() {
 	go core.AuthNewUsers(conns, users)
 
 	// Handle connected users.
-	go debugUserHandler(users)
+	go demoRoom(users, env.CreateRoom())
 
 	if err := core.ServeForever(*port, conns); err != nil {
 		fmt.Printf("Failed start server: %v", err)
