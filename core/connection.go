@@ -43,32 +43,33 @@ func readLines(conn *Connection, r chan<- string, reader io.Reader) {
 		for i := 0; i < n; i++ {
 			next := b[i]
 			// TODO: handle esc sequences, aka [*
-			if next & 0x80 != 0 {
+            switch {
+			case next & 0x80 != 0:
 				// telnet control character
 				fmt.Printf("0x%x\n", next)
                 if next == 0xfd {
                     telnet_option_mode = true
                 }
-			} else if telnet_option_mode {
+            case telnet_option_mode:
 				// telnet option
 				fmt.Printf("0x%x\n", next)
                 if next == 0x01 {
                     conn.echo = true
                 }
 				telnet_option_mode = false
-			} else if strconv.IsPrint(rune(next)) { // TODO: enforce a max buf size
+            case strconv.IsPrint(rune(next)): // TODO: enforce a max buf size
 				// printable character
 				if conn.echo {
 					conn.rawWrite <- string(next)
 				}
 				conn.buffer = append(conn.buffer, next)
-			} else if next == 0x7f && conn.echo {
+			case next == 0x7f && conn.echo:
 				// backspace
 				if len(conn.buffer) > 0 {
 					conn.buffer = conn.buffer[:len(conn.buffer)-1]
 					conn.rawWrite <- "\b \b"
 				}
-			} else if len(conn.buffer) > 0 {
+			case len(conn.buffer) > 0:
 				// newline
 				r <- string(conn.buffer)
 				if conn.echo {
