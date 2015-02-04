@@ -17,9 +17,9 @@ type Connection struct {
 	netConn  net.Conn
 	Read     <-chan string
 	Write    chan<- string
-	rawWrite chan<- string
 	Prompt   chan<- bool
 
+	rawWrite chan<- string
 	buffer     []byte
 	bufferLock sync.Mutex
 	echo       bool
@@ -43,13 +43,18 @@ func readLines(conn *Connection, r chan<- string, reader io.Reader) {
 		for i := 0; i < n; i++ {
 			next := b[i]
 			// TODO: handle esc sequences, aka [*
-			if next&0x80 != 0 {
+			if next & 0x80 != 0 {
 				// telnet control character
 				fmt.Printf("0x%x\n", next)
-				telnet_option_mode = true
+                if next == 0xfd {
+                    telnet_option_mode = true
+                }
 			} else if telnet_option_mode {
 				// telnet option
 				fmt.Printf("0x%x\n", next)
+                if next == 0x01 {
+                    conn.echo = true
+                }
 				telnet_option_mode = false
 			} else if strconv.IsPrint(rune(next)) { // TODO: enforce a max buf size
 				// printable character
@@ -103,14 +108,15 @@ func detachConnection(conn net.Conn) Connection {
 	w := make(chan string)  // raw write
 	p := make(chan bool)    // trigger prompt
 	wp := make(chan string) // write with prompt
-	connection := Connection{conn, r, wp, w, p, make([]byte, 2048), sync.Mutex{}, true}
+	connection := Connection{conn, r, wp, p, w, make([]byte, 2048), sync.Mutex{}, false}
 	go readLines(&connection, r, conn)
 	go writeRaw(w, conn)
 	go writeAndPrompt(&connection, wp, w)
 	go triggerPrompts(p, wp)
-	// Set telnet to ECHO (no local buffering)
-	// TODO(craigdh): Check for ACK (\xff\xfd\x03 \xff\xfd\x01) and set echo appropriately.
+
+	// Set telnet to ECHO (no local buffering). We wait to receive the DO ECHO before changing behavior.
 	w <- "\xff\xfb\x03\xff\xfb\x01"
+
 	return connection
 }
 
