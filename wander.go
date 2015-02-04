@@ -18,7 +18,7 @@ func userRoom(user *core.ActiveUser, actions chan<- *env.Action) {
 		case "exit":
 			user.Conn.Close()
 		default:
-			actions <- simpleverbs.Talk.CreateUserAction(user, nil, nil, []string{cmd + "\n"})
+			actions <- simpleverbs.Talk.CreateUserAction(user, nil, nil, []string{cmd})
 		}
 	}
 }

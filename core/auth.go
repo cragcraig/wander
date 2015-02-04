@@ -18,20 +18,21 @@ func AuthNewUsers(c <-chan *Connection, users chan<- *ActiveUser) {
 
 func authConnection(id int, conn *Connection, users chan<- *ActiveUser) {
 	for {
-		conn.Write <- "What is your nom de plume?\n"
+		conn.Write <- "What is your nom de plume?"
 		nick, ok := <-conn.Read
 		if !ok {
-			// Client disconnected.
+			// Client disconnected
 			return
 		}
 		nick = strings.TrimFunc(nick, func(r rune) bool {
 			return !unicode.IsLetter(r) && !unicode.IsDigit(r) && !unicode.IsPunct(r)
 		})
+        // TODO: Use a regex
 		if nick != "" && len(nick) < 16 {
-			conn.Write <- fmt.Sprintf("Welcome to a Science Fiction Universe, %v!\n", nick)
+			conn.Write <- fmt.Sprintf("Welcome to a Science Fiction Universe, %v!", nick)
 			users <- &ActiveUser{id, nick, conn, time.Now()}
 			return
 		}
-		conn.Write <- "Bad answer...\n"
+		conn.Write <- "Bad answer..."
 	}
 }

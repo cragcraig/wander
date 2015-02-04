@@ -90,10 +90,16 @@ func writeRaw(w <-chan string, writer io.Writer) {
 
 func writeAndPrompt(conn *Connection, wp <-chan string, w chan<- string) {
 	for s := range wp {
-		w <- "\r\x00" + s
+        prefix := Newline
 		conn.bufferLock.Lock()
 		buf := string(conn.buffer)
+        if (conn.echo) {
+		    prefix = "\r\x00"
+        }
 		conn.bufferLock.Unlock()
+        if (s != "") {
+            w <- prefix + s + Newline
+        }
 		w <- "\r\x00> " + buf
 	}
 }
@@ -109,13 +115,14 @@ func detachConnection(conn net.Conn) *Connection {
 	w := make(chan string)  // raw write
 	p := make(chan bool)    // trigger prompt
 	wp := make(chan string) // write with prompt
-	connection := Connection{conn, r, wp, p, w, make([]byte, 2048), sync.Mutex{}, false}
+	connection := Connection{conn, r, wp, p, w, make([]byte, 256), sync.Mutex{}, false}
 	go readLines(&connection, r, conn)
 	go writeRaw(w, conn)
 	go writeAndPrompt(&connection, wp, w)
 	go triggerPrompts(p, wp)
 
-	// Set telnet to ECHO (no local buffering). We wait to receive the DO ECHO before changing behavior.
+	// Set telnet to WILL ECHO (disable local buffering/edit). We wait to receive a
+    // DO ECHO response before changing behavior.
 	w <- "\xff\xfb\x03\xff\xfb\x01"
 
 	return &connection

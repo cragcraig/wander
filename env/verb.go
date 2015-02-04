@@ -5,7 +5,7 @@ import (
 )
 
 type Verb struct {
-	Name  string
+    Name  string // TODO: Past, present, future (more?) tenses
 	Types []VerbType
 }
 

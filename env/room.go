@@ -39,21 +39,21 @@ func (room *Room) handleActions(actions chan *Action) {
 		case 0:
 			// Found no targets (error)
 			if action.User != nil {
-				action.User.Conn.Write <- fmt.Sprintf("No targets to %v\n", action.Verb)
+				action.User.Conn.Write <- fmt.Sprintf("No targets to %v", action.Verb)
 			}
 		case 1:
 			// Found a single target (sucess)
 			if err := targets[0].GetHandler(action.Verb)(room, action, targets[0]); err != nil {
 				if action.User != nil {
-					action.User.Conn.Write <- err.Error() + "\n"
+					action.User.Conn.Write <- err.Error()
 				}
 			}
 		default:
 			// Found multiple targets (prompt)
 			if action.User != nil {
-				action.User.Conn.Write <- "Multiple targets:\n"
+				action.User.Conn.Write <- "Multiple targets:"
 				for i := range targets {
-					action.User.Conn.Write <- targets[i].GetName() + "\n"
+					action.User.Conn.Write <- targets[i].GetName()
 				}
 			}
 		}
