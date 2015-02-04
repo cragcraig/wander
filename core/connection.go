@@ -104,7 +104,7 @@ func triggerPrompts(p <-chan bool, wp chan<- string) {
 	}
 }
 
-func detachConnection(conn net.Conn) Connection {
+func detachConnection(conn net.Conn) *Connection {
 	r := make(chan string)  // read
 	w := make(chan string)  // raw write
 	p := make(chan bool)    // trigger prompt
@@ -118,10 +118,10 @@ func detachConnection(conn net.Conn) Connection {
 	// Set telnet to ECHO (no local buffering). We wait to receive the DO ECHO before changing behavior.
 	w <- "\xff\xfb\x03\xff\xfb\x01"
 
-	return connection
+	return &connection
 }
 
-func acceptConnectionsForever(ln net.Listener, c chan<- Connection) {
+func acceptConnectionsForever(ln net.Listener, c chan<- *Connection) {
 	for {
 		if conn, err := ln.Accept(); err == nil {
 			fmt.Printf("Accepted new connection from %v\n", conn.RemoteAddr())
@@ -130,7 +130,7 @@ func acceptConnectionsForever(ln net.Listener, c chan<- Connection) {
 	}
 }
 
-func ServeForever(port uint, c chan<- Connection) error {
+func ServeForever(port uint, c chan<- *Connection) error {
 	if ln, err := net.Listen("tcp", fmt.Sprintf(":%v", port)); err != nil {
 		return err
 	} else {

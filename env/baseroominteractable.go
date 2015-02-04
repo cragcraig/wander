@@ -14,23 +14,23 @@ func (inter BaseRoomInteractable) GetName() string {
 	return "<base room>"
 }
 
-func (inter BaseRoomInteractable) GetHandler(verb Verb) VerbHandler {
+func (inter *BaseRoomInteractable) GetHandler(verb *Verb) VerbHandler {
 	switch {
 	case verb.HasType(enterRoom):
 		// TODO(craig): Don't inline function.
-		return func(room Room, action Action, target Interactable) error {
-			room.Users[action.User.Id] = *action.User
+		return func(room *Room, action *Action, target Interactable) error {
+			room.Users[action.User.Id] = action.User
 			return nil
 		}
 	case verb.HasType(leaveRoom):
 		// TODO(craig): Don't inline function.
-		return func(room Room, action Action, target Interactable) error {
+		return func(room *Room, action *Action, target Interactable) error {
 			delete(room.Users, action.User.Id)
 			return nil
 		}
 	case verb.HasType(Talk):
 		// TODO(craig): Don't inline function.
-		return func(room Room, action Action, target Interactable) error {
+		return func(room *Room, action *Action, target Interactable) error {
 			if len(action.Args) != 1 {
 				return errors.New("talk requires exactly one argument")
 			} else if action.User == nil {
@@ -46,6 +46,6 @@ func (inter BaseRoomInteractable) GetHandler(verb Verb) VerbHandler {
 	return nil
 }
 
-func (inter BaseRoomInteractable) DoesMatchHint(hint string) bool {
+func (inter *BaseRoomInteractable) DoesMatchHint(hint string) bool {
 	return false
 }

@@ -6,8 +6,8 @@ import (
 )
 
 type Room struct {
-	Actions       chan<- Action
-	Users         map[int]core.ActiveUser
+	Actions       chan<- *Action
+	Users         map[int]*core.ActiveUser
 	interactables []Interactable
 }
 
@@ -15,14 +15,14 @@ func (room *Room) IsActive() bool {
 	return len(room.Users) > 0
 }
 
-func CreateRoom() Room {
-	actions := make(chan Action)
-	room := Room{actions, map[int]core.ActiveUser{}, []Interactable{BaseRoomInteractable{}}}
+func CreateRoom() *Room {
+	actions := make(chan *Action)
+	room := Room{actions, map[int]*core.ActiveUser{}, []Interactable{&BaseRoomInteractable{}}}
 	go room.handleActions(actions)
-	return room
+	return &room
 }
 
-func (room Room) handleActions(actions chan Action) {
+func (room *Room) handleActions(actions chan *Action) {
 	for action := range actions {
 		var targets []Interactable
 		// Check all interactables in the room as possible targets

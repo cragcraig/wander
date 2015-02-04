@@ -5,9 +5,9 @@ import (
 )
 
 type Action struct {
-	Verb       Verb
-	Tool       *Interactable
-	TargetHint *string
-	User       *core.ActiveUser
+	Verb       *Verb
+	Tool       Interactable // optional
+	TargetHint *string // optional
+	User       *core.ActiveUser // optional
 	Args       []string
 }

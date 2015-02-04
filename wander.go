@@ -8,7 +8,7 @@ import (
 	"github.com/gnarlyskier/wander/simpleverbs"
 )
 
-func userRoom(user core.ActiveUser, actions chan<- env.Action) {
+func userRoom(user *core.ActiveUser, actions chan<- *env.Action) {
 	actions <- env.EnterRoom.CreateUserAction(user, nil, nil, nil)
 	defer func() {
 		actions <- env.LeaveRoom.CreateUserAction(user, nil, nil, nil)
@@ -23,7 +23,7 @@ func userRoom(user core.ActiveUser, actions chan<- env.Action) {
 	}
 }
 
-func demoRoom(c <-chan core.ActiveUser, room env.Room) {
+func demoRoom(c <-chan *core.ActiveUser, room *env.Room) {
 	for user := range c {
 		go userRoom(user, room.Actions)
 	}
@@ -33,8 +33,8 @@ func main() {
 	port := flag.Uint("port", 4000, "port on which to listen for connections")
 	flag.Parse()
 
-	conns := make(chan core.Connection)
-	users := make(chan core.ActiveUser)
+	conns := make(chan *core.Connection)
+	users := make(chan *core.ActiveUser)
 	go core.AuthNewUsers(conns, users)
 
 	// Handle connected users.

@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-func AuthNewUsers(c <-chan Connection, users chan<- ActiveUser) {
+func AuthNewUsers(c <-chan *Connection, users chan<- *ActiveUser) {
 	defer close(users)
 	nextId := 0
 	for conn := range c {
@@ -16,7 +16,7 @@ func AuthNewUsers(c <-chan Connection, users chan<- ActiveUser) {
 	}
 }
 
-func authConnection(id int, conn Connection, users chan<- ActiveUser) {
+func authConnection(id int, conn *Connection, users chan<- *ActiveUser) {
 	for {
 		conn.Write <- "What is your nom de plume?\n"
 		nick, ok := <-conn.Read
@@ -29,7 +29,7 @@ func authConnection(id int, conn Connection, users chan<- ActiveUser) {
 		})
 		if nick != "" && len(nick) < 16 {
 			conn.Write <- fmt.Sprintf("Welcome to a Science Fiction Universe, %v!\n", nick)
-			users <- ActiveUser{id, nick, conn, time.Now()}
+			users <- &ActiveUser{id, nick, conn, time.Now()}
 			return
 		}
 		conn.Write <- "Bad answer...\n"
