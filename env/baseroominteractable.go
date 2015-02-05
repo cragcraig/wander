@@ -5,8 +5,15 @@ import (
 	"fmt"
 )
 
-var EnterRoom Verb = Verb{"<enter room>", []VerbType{enterRoom}}
-var LeaveRoom Verb = Verb{"<leave room>", []VerbType{leaveRoom}}
+var EnterRoom Verb = Verb{
+    Speakable{"entered", "enters", "entering"},
+    []string{},
+    []VerbType{enterRoom}}
+
+var LeaveRoom Verb = Verb{
+    Speakable{"left", "leaves", "leaving"},
+    []string{},
+    []VerbType{leaveRoom}}
 
 type BaseRoomInteractable struct{}
 
@@ -36,7 +43,7 @@ func (inter *BaseRoomInteractable) GetHandler(verb *Verb) VerbHandler {
 			} else if action.User == nil {
 				return errors.New("talk requires an originating user")
 			}
-			msg := fmt.Sprintf("%v: %v", action.User, action.Args[0])
+			msg := fmt.Sprintf("%v %v: %v", action.User, action.Verb.Present, action.Args[0])
 			for _, v := range room.Users {
 				v.Conn.Write <- msg
 			}
@@ -48,4 +55,8 @@ func (inter *BaseRoomInteractable) GetHandler(verb *Verb) VerbHandler {
 
 func (inter *BaseRoomInteractable) DoesMatchHint(hint string) bool {
 	return false
+}
+
+func (inter *BaseRoomInteractable) WhatCanThisDo() []*Verb {
+    return []*Verb{}
 }

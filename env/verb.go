@@ -4,8 +4,13 @@ import (
 	"github.com/gnarlyskier/wander/core"
 )
 
+type Speakable struct {
+    Past, Present, Continuous string
+}
+
 type Verb struct {
-    Name  string // TODO: Past, present, future (more?) tenses
+    Speakable
+    CommandAliases []string
 	Types []VerbType
 }
 
@@ -14,7 +19,7 @@ func (verb *Verb) CreateUserAction(user *core.ActiveUser, tool Interactable, tar
 }
 
 func (verb *Verb) String() string {
-	return verb.Name
+	return verb.Present
 }
 
 func (verb *Verb) HasType(t VerbType) bool {
