@@ -13,9 +13,13 @@ func (public *publicPlayer) talkHandler(room *Room, action *Action, target Inter
 	if len(action.Args) != 1 {
 		return "You didn't say anything..."
 	} else if action.Player == nil {
-		return "talk requires an originating user"
+		return "Speaking requires an originating user"
 	}
-	public.player.Conn.Write <- fmt.Sprintf("%v %v: %v", action.Player, action.Verb.Present, action.Args[0])
+	public.player.Conn.Write <- fmt.Sprintf(
+		"%v %v: %v",
+		action.GetSpeakNick(public.player, true),
+		action.Verb.Speak(action.GetSpeakTarget(public.player), verbs.Present),
+		action.Args[0])
 	return ""
 }
 
