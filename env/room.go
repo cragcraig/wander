@@ -16,7 +16,7 @@ func (room *Room) IsActive() bool {
 
 func CreateRoom() *Room {
 	actions := make(chan *Action)
-	room := Room{actions, map[int]Player{}, []Interactable{&BaseRoomInteractable{}}}
+	room := Room{actions, map[int]Player{}, []Interactable{&BaseRoom{}}}
 	go room.handleActions(actions)
 	return &room
 }

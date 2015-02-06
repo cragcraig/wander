@@ -9,7 +9,7 @@ type Action struct {
 	Tool       Interactable // optional
 	TargetHint *string      // optional
 	Player     *Player      // optional
-	Args       []string
+	Arg       interface{}
 }
 
 func (action *Action) GetSpeakTarget(target *Player) verbs.SpeakTarget {

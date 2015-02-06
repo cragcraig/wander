@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-var cmdRegexp *regexp.Regexp = regexp.MustCompile(`^(\w+)(?:\s+(.*))?$`)
+var cmdRegexp *regexp.Regexp = regexp.MustCompile(`^(\w+)(?:\s+(.+))?$`)
 
 func ParsePlayerAction(player *env.Player, s string) *env.Action {
 	res := cmdRegexp.FindStringSubmatch(s)
@@ -17,11 +17,11 @@ func ParsePlayerAction(player *env.Player, s string) *env.Action {
 				aliases := v[j].CommandAliases
 				for k := range aliases {
 					if cmd == aliases[k] {
-						var args []string
+						var arg string
 						if len(res) > 2 {
-							args = []string{res[2]}
+							arg = res[2]
 						}
-						return player.CreateAction(v[j], player.Private[i], nil, args)
+						return player.CreateAction(v[j], player.Private[i], nil, arg)
 					}
 				}
 			}

@@ -10,25 +10,26 @@ type publicPlayer struct {
 }
 
 func (public *publicPlayer) talkHandler(room *Room, action *Action, target Interactable) string {
-	if len(action.Args) != 1 {
-		return "You didn't say anything..."
-	} else if action.Player == nil {
-		return "Speaking requires an originating user"
-	}
-	public.player.Conn.Write <- fmt.Sprintf(
-		"%v %v: %v",
-		action.GetSpeakNick(public.player, true),
-		action.Verb.Speak(action.GetSpeakTarget(public.player), verbs.Present),
-		action.Args[0])
-	return ""
+    if action.Player == nil {
+        return "Speaking requires an originating user"
+    }
+    if msg, ok := action.Arg.(string); ok && msg != "" {
+        public.player.Conn.Write <- fmt.Sprintf(
+            "%v %v: %v",
+            action.GetSpeakNick(public.player, true),
+            action.Verb.Speak(action.GetSpeakTarget(public.player), verbs.Present),
+            msg)
+        return ""
+    }
+    return "You didn't say anything..."
 }
 
 func (public *publicPlayer) msgHandler(room *Room, action *Action, target Interactable) string {
-	if len(action.Args) != 1 {
-		return "msg requires exactly one argument"
-	}
-	public.player.Conn.Write <- action.Args[0]
-	return ""
+    if msg, ok := action.Arg.(string); ok {
+	    public.player.Conn.Write <- msg
+        return ""
+    }
+	return "A non-string message was sent???"
 }
 
 func (public *publicPlayer) GetName() string {
@@ -50,5 +51,5 @@ func (public *publicPlayer) WhatCanThisDo() []verbs.Verb {
 }
 
 func (public *publicPlayer) DoesMatchHint(hint string) bool {
-	return hint == public.player.Nick
+	return hint == public.player.GetTargetHint()
 }
