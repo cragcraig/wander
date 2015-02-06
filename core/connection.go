@@ -14,12 +14,12 @@ const (
 )
 
 type Connection struct {
-	netConn  net.Conn
-	Read     <-chan string
-	Write    chan<- string
-	Prompt   chan<- bool
+	netConn net.Conn
+	Read    <-chan string
+	Write   chan<- string
+	Prompt  chan<- bool
 
-	rawWrite chan<- string
+	rawWrite   chan<- string
 	buffer     []byte
 	bufferLock sync.Mutex
 	echo       bool
@@ -43,21 +43,19 @@ func readLines(conn *Connection, r chan<- string, reader io.Reader) {
 		for i := 0; i < n; i++ {
 			next := b[i]
 			// TODO: handle esc sequences, aka [*
-            switch {
-			case next & 0x80 != 0:
+			switch {
+			case next&0x80 != 0:
 				// telnet control character
-				fmt.Printf("0x%x\n", next)
-                if next == 0xfd {
-                    telnet_option_mode = true
-                }
-            case telnet_option_mode:
+				if next == 0xfd {
+					telnet_option_mode = true
+				}
+			case telnet_option_mode:
 				// telnet option
-				fmt.Printf("0x%x\n", next)
-                if next == 0x01 {
-                    conn.echo = true
-                }
+				if next == 0x01 {
+					conn.echo = true
+				}
 				telnet_option_mode = false
-            case strconv.IsPrint(rune(next)): // TODO: enforce a max buf size
+			case strconv.IsPrint(rune(next)): // TODO: enforce a max buf size
 				// printable character
 				if conn.echo {
 					conn.rawWrite <- string(next)
@@ -90,16 +88,16 @@ func writeRaw(w <-chan string, writer io.Writer) {
 
 func writeAndPrompt(conn *Connection, wp <-chan string, w chan<- string) {
 	for s := range wp {
-        prefix := Newline
+		prefix := Newline
 		conn.bufferLock.Lock()
 		buf := string(conn.buffer)
-        if (conn.echo) {
-		    prefix = "\r\x00"
-        }
+		if conn.echo {
+			prefix = "\r\x00"
+		}
 		conn.bufferLock.Unlock()
-        if (s != "") {
-            w <- prefix + s + Newline
-        }
+		if s != "" {
+			w <- prefix + s + Newline
+		}
 		w <- "\r\x00> " + buf
 	}
 }
@@ -122,7 +120,7 @@ func detachConnection(conn net.Conn) *Connection {
 	go triggerPrompts(p, wp)
 
 	// Set telnet to WILL ECHO (disable local buffering/edit). We wait to receive a
-    // DO ECHO response before changing behavior.
+	// DO ECHO response before changing behavior.
 	w <- "\xff\xfb\x03\xff\xfb\x01"
 
 	return &connection
