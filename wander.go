@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"github.com/gnarlyskier/wander/core"
 	"github.com/gnarlyskier/wander/env"
-	"github.com/gnarlyskier/wander/simpleverbs"
+	"github.com/gnarlyskier/wander/nlp"
+	"github.com/gnarlyskier/wander/verbs"
 )
 
 func userRoom(user *core.ActiveUser, actions chan<- *env.Action) {
-	actions <- env.EnterRoom.CreateUserAction(user, nil, nil, nil)
+	player := env.CreatePlayer(user)
+	actions <- player.CreateAction(verbs.EnterRoom, nil, nil, nil)
 	defer func() {
-		actions <- env.LeaveRoom.CreateUserAction(user, nil, nil, nil)
+		actions <- player.CreateAction(verbs.LeaveRoom, nil, nil, nil)
 	}()
-	for cmd := range user.Conn.Read {
-		switch cmd {
-		case "exit":
-			user.Conn.Close()
-		default:
-			actions <- simpleverbs.Talk.CreateUserAction(user, nil, nil, []string{cmd})
+	for input := range user.Conn.Read {
+		action := nlp.ParsePlayerAction(player, input)
+		if action != nil {
+			actions <- action
 		}
 	}
 }

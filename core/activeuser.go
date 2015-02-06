@@ -2,6 +2,7 @@ package core
 
 import "time"
 
+// Must be safe to copy-by-value
 type ActiveUser struct {
 	Id        int
 	Nick      string

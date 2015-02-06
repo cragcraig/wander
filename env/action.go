@@ -1,13 +1,13 @@
 package env
 
 import (
-	"github.com/gnarlyskier/wander/core"
+	"github.com/gnarlyskier/wander/verbs"
 )
 
 type Action struct {
-	Verb       *Verb
+	Verb       verbs.Verb
 	Tool       Interactable // optional
-	TargetHint *string // optional
-	User       *core.ActiveUser // optional
+	TargetHint *string      // optional
+	Player     *Player      // optional
 	Args       []string
 }

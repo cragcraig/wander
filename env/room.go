@@ -2,63 +2,74 @@ package env
 
 import (
 	"fmt"
-	"github.com/gnarlyskier/wander/core"
 )
 
 type Room struct {
 	Actions       chan<- *Action
-	Users         map[int]*core.ActiveUser
+	Players       map[int]Player
 	interactables []Interactable
 }
 
 func (room *Room) IsActive() bool {
-	return len(room.Users) > 0
+	return len(room.Players) > 0
 }
 
 func CreateRoom() *Room {
 	actions := make(chan *Action)
-	room := Room{actions, map[int]*core.ActiveUser{}, []Interactable{&BaseRoomInteractable{}}}
+	room := Room{actions, map[int]Player{}, []Interactable{&BaseRoomInteractable{}}}
 	go room.handleActions(actions)
 	return &room
 }
 
-func (room *Room) handleActions(actions chan *Action) {
-	for action := range actions {
-		var targets []Interactable
-		// Check all interactables in the room as possible targets
-		for i := range room.interactables {
-			inter := room.interactables[i]
-			if action.TargetHint == nil || inter.DoesMatchHint(*action.TargetHint) {
-				if inter.GetHandler(action.Verb) != nil {
-					targets = append(targets, inter)
-				}
+func getTargets(interactables []Interactable, action *Action) []Interactable {
+	var targets []Interactable
+	// Check all interactables as possible targets
+	for i := range interactables {
+		inter := interactables[i]
+		if action.TargetHint == nil || inter.DoesMatchHint(*action.TargetHint) {
+			if inter.GetHandler(action.Verb) != nil {
+				targets = append(targets, inter)
 			}
 		}
+	}
+	return targets
+}
+
+func (room *Room) handleActions(actions chan *Action) {
+	for action := range actions {
+		// Get all targets
+		targets := getTargets(room.interactables, action)
+		for i := range room.Players {
+			targets = append(targets, getTargets(room.Players[i].Public, action)...)
+		}
+		if action.Player != nil {
+			targets = append(targets, getTargets(action.Player.Private, action)...)
+		}
 		// Dispatch event
-		switch len(targets) {
-		case 0:
+		switch {
+		case len(targets) == 0:
 			// Found no targets (error)
-			if action.User != nil {
-				action.User.Conn.Write <- fmt.Sprintf("No targets to %v", action.Verb)
+			if action.Player != nil {
+				action.Player.Conn.Write <- fmt.Sprintf("No valid targets for %v", action.Verb)
 			}
-		case 1:
-			// Found a single target (sucess)
-			if err := targets[0].GetHandler(action.Verb)(room, action, targets[0]); err != nil {
-				if action.User != nil {
-					action.User.Conn.Write <- err.Error()
+		case len(targets) == 1 || !action.Verb.Targeted:
+			// Success
+			for i := range targets {
+				if msg := targets[i].GetHandler(action.Verb)(room, action, targets[i]); msg != "" && action.Player != nil {
+					action.Player.Conn.Write <- msg
 				}
 			}
 		default:
 			// Found multiple targets (prompt)
-			if action.User != nil {
-				action.User.Conn.Write <- "Multiple targets:"
+			if action.Player != nil {
+				action.Player.Conn.Write <- "Multiple targets:"
 				for i := range targets {
-					action.User.Conn.Write <- targets[i].GetName()
+					action.Player.Conn.Write <- targets[i].GetName()
 				}
 			}
 		}
-		if action.User != nil {
-			action.User.Conn.Prompt <- true
+		if action.Player != nil {
+			action.Player.Conn.Prompt <- true
 		}
 	}
 }
