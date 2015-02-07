@@ -9,33 +9,49 @@ type privatePlayer struct {
 	player *Player
 }
 
-func (public *privatePlayer) statusHandler(room *Room, action *Action, target Interactable) string {
+func (private *privatePlayer) statusHandler(room *Room, action *Action, target Interactable) string {
 	return fmt.Sprintf("Your nickname: %v", action.Player)
 }
 
-func (public *privatePlayer) exitHandler(room *Room, action *Action, target Interactable) string {
-	public.player.Conn.Close()
+func (private *privatePlayer) exitHandler(room *Room, action *Action, target Interactable) string {
+	private.player.Conn.Close()
 	return ""
 }
 
-func (public *privatePlayer) GetName() string {
+func (private *privatePlayer) helpHandler(room *Room, action *Action, target Interactable) string {
+	doables := private.WhatCanThisDo()
+	private.player.Conn.Write <- "Available actions:"
+	for i := range doables {
+		if len(doables[i].CommandAliases) != 0 {
+			private.player.Conn.Write <- fmt.Sprintf(
+				" %-14v - %v",
+				doables[i].CommandAliases[0],
+				doables[i].Help)
+		}
+	}
+	return ""
+}
+
+func (private *privatePlayer) GetName() string {
 	return "you"
 }
 
-func (public *privatePlayer) GetHandler(verb verbs.Verb) VerbHandler {
+func (private *privatePlayer) GetHandler(verb verbs.Verb) VerbHandler {
 	switch {
 	case verb.HasType(verbs.StatusType):
-		return public.statusHandler
+		return private.statusHandler
 	case verb.HasType(verbs.ExitType):
-		return public.exitHandler
+		return private.exitHandler
+	case verb.HasType(verbs.HelpType):
+		return private.helpHandler
 	}
 	return nil
 }
 
-func (public *privatePlayer) WhatCanThisDo() []verbs.Verb {
-	return []verbs.Verb{verbs.Exit, verbs.Status, verbs.Talk}
+func (private *privatePlayer) WhatCanThisDo() []verbs.Verb {
+	return []verbs.Verb{verbs.Exit, verbs.Status, verbs.Help, verbs.Talk}
 }
 
-func (public *privatePlayer) DoesMatchHint(hint string) bool {
+func (private *privatePlayer) DoesMatchHint(hint string) bool {
 	return hint == "me" || hint == "myself"
 }

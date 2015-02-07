@@ -3,12 +3,13 @@ package nlp
 import (
 	"github.com/gnarlyskier/wander/env"
 	"regexp"
+	"strings"
 )
 
-var cmdRegexp *regexp.Regexp = regexp.MustCompile(`^(\w+)(?:\s+(.+))?$`)
+var cmdRegexp *regexp.Regexp = regexp.MustCompile(`^(\w+)(?:\s+(\S.*))?$`)
 
 func ParsePlayerAction(player *env.Player, s string) *env.Action {
-	res := cmdRegexp.FindStringSubmatch(s)
+	res := cmdRegexp.FindStringSubmatch(strings.TrimSpace(s))
 	if res != nil {
 		cmd := res[1]
 		for i := range player.Private {
@@ -17,9 +18,9 @@ func ParsePlayerAction(player *env.Player, s string) *env.Action {
 				aliases := v[j].CommandAliases
 				for k := range aliases {
 					if cmd == aliases[k] {
-						var arg string
-						if len(res) > 2 {
-							arg = res[2]
+						var arg interface{}
+						if len(res) > 2 && v[j].ArgParser != nil {
+							arg = v[j].ArgParser(res[2])
 						}
 						return player.CreateAction(v[j], player.Private[i], nil, arg)
 					}
@@ -29,6 +30,6 @@ func ParsePlayerAction(player *env.Player, s string) *env.Action {
 		player.Conn.Write <- "Unrecognized command \"" + cmd + "\"."
 		return nil
 	}
-	player.Conn.Write <- "Invalid input."
+	player.Conn.Write <- "Invalid command."
 	return nil
 }

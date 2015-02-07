@@ -23,7 +23,9 @@ type Verb struct {
 	other          Speakable
 	CommandAliases []string
 	Types          []VerbType
+	Help           string
 	Targeted       bool
+	ArgParser      func(string) interface{}
 }
 
 func (verb *Verb) Speak(target SpeakTarget, time SpeakTime) string {
