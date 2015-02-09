@@ -20,6 +20,6 @@ type SimpleVerse struct {
 func (v *SimpleVerse) Render(x, y int, b *ascii.Buffer) {
 	for i := range v.Renderables {
 		r := v.Renderables[i]
-		r.R.Render((r.X-x)*ascii.RenderableWidth, (r.Y-y)*ascii.RenderableHeight, b)
+		r.R.Render(r.X-x, r.Y-y, b)
 	}
 }
