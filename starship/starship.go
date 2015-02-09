@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"github.com/gnarlyskier/wander/ascii"
 	"github.com/gnarlyskier/wander/core"
+	"github.com/gnarlyskier/wander/verse"
 )
 
 func handleConnections(conn <-chan *core.Connection) {
+	v := verse.SimpleVerse{[]verse.PosRenderable{
+		verse.PosRenderable{5, 5, ascii.TieFighter}}}
+	buf := ascii.CreateBuffer(80, 24)
 	for c := range conn {
-		buf := make([]byte, 80*24)
-		for i := range buf {
-			buf[i] = 'o'
-		}
-		c.RawWrite <- ascii.Render(buf, 80, 24)
+		v.Render(0, 0, buf)
+		c.RawWrite <- buf.Render()
 	}
 }
 

@@ -35,7 +35,7 @@ func getRenderPrefix() []byte {
 }
 
 // Renders a buffer of printable bytes to a vt100 terminal.
-func Render(buf []byte, w int, h int) []byte {
+func Render(w int, h int, buf []byte) []byte {
 	if len(buf) != w*h {
 		panic("Length of render buffer was not width * hight!")
 	}
