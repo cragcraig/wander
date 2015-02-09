@@ -19,7 +19,7 @@ type Connection struct {
 	Write   chan<- string
 	Prompt  chan<- bool
 
-	rawWrite   chan<- string
+	RawWrite   chan<- []byte
 	buffer     []byte
 	bufferLock sync.Mutex
 	echo       bool
@@ -58,20 +58,20 @@ func readLines(conn *Connection, r chan<- string, reader io.Reader) {
 			case strconv.IsPrint(rune(next)): // TODO: enforce a max buf size
 				// printable character
 				if conn.echo {
-					conn.rawWrite <- string(next)
+					conn.RawWrite <- []byte{next}
 				}
 				conn.buffer = append(conn.buffer, next)
 			case next == 0x7f && conn.echo:
 				// backspace
 				if len(conn.buffer) > 0 {
 					conn.buffer = conn.buffer[:len(conn.buffer)-1]
-					conn.rawWrite <- "\b \b"
+					conn.RawWrite <- []byte("\b \b")
 				}
 			case len(conn.buffer) > 0:
 				// newline
 				r <- string(conn.buffer)
 				if conn.echo {
-					conn.rawWrite <- Newline
+					conn.RawWrite <- []byte(Newline)
 				}
 				conn.buffer = conn.buffer[:0]
 			}
@@ -80,13 +80,13 @@ func readLines(conn *Connection, r chan<- string, reader io.Reader) {
 	}
 }
 
-func writeRaw(w <-chan string, writer io.Writer) {
-	for s := range w {
-		writer.Write([]byte(s))
+func writeRaw(w <-chan []byte, writer io.Writer) {
+	for b := range w {
+		writer.Write(b)
 	}
 }
 
-func writeAndPrompt(conn *Connection, wp <-chan string, w chan<- string) {
+func writeAndPrompt(conn *Connection, wp <-chan string, w chan<- []byte) {
 	for s := range wp {
 		prefix := Newline
 		conn.bufferLock.Lock()
@@ -96,9 +96,9 @@ func writeAndPrompt(conn *Connection, wp <-chan string, w chan<- string) {
 		}
 		conn.bufferLock.Unlock()
 		if s != "" {
-			w <- prefix + s + Newline
+			w <- []byte(prefix + s + Newline)
 		}
-		w <- "\r\x00> " + buf
+		w <- []byte("\r\x00> " + buf)
 	}
 }
 
@@ -110,7 +110,7 @@ func triggerPrompts(p <-chan bool, wp chan<- string) {
 
 func detachConnection(conn net.Conn) *Connection {
 	r := make(chan string)  // read
-	w := make(chan string)  // raw write
+	w := make(chan []byte)  // raw write
 	p := make(chan bool)    // trigger prompt
 	wp := make(chan string) // write with prompt
 	connection := Connection{conn, r, wp, p, w, make([]byte, 256), sync.Mutex{}, false}
@@ -121,7 +121,7 @@ func detachConnection(conn net.Conn) *Connection {
 
 	// Set telnet to WILL ECHO (disable local buffering/edit). We wait to receive a
 	// DO ECHO response before changing behavior.
-	w <- "\xff\xfb\x03\xff\xfb\x01"
+	w <- []byte{0xff, 0xfb, 0x03, 0xff, 0xfb, 0x01}
 
 	return &connection
 }
