@@ -1,8 +1,8 @@
 package env
 
 import (
-	"github.com/gnarlyskier/wander/core"
-	"github.com/gnarlyskier/wander/verbs"
+	"github.com/cragcraig/wander/core"
+	"github.com/cragcraig/wander/verbs"
     "strconv"
 )
 

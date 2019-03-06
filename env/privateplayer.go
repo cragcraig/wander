@@ -2,7 +2,7 @@ package env
 
 import (
 	"fmt"
-	"github.com/gnarlyskier/wander/verbs"
+	"github.com/cragcraig/wander/verbs"
 )
 
 type privatePlayer struct {

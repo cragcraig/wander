@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gnarlyskier/wander/core"
-	"github.com/gnarlyskier/wander/env"
-	"github.com/gnarlyskier/wander/nlp"
-	"github.com/gnarlyskier/wander/verbs"
+	"github.com/cragcraig/wander/core"
+	"github.com/cragcraig/wander/env"
+	"github.com/cragcraig/wander/nlp"
+	"github.com/cragcraig/wander/verbs"
 )
 
 func userRoom(user *core.ActiveUser, actions chan<- *env.Action) {

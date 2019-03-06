@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gnarlyskier/wander/ascii"
-	"github.com/gnarlyskier/wander/core"
-	"github.com/gnarlyskier/wander/verse"
+	"github.com/cragcraig/wander/ascii"
+	"github.com/cragcraig/wander/core"
+	"github.com/cragcraig/wander/verse"
 )
 
 func handleConnections(conn <-chan *core.Connection) {

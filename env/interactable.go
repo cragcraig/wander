@@ -1,7 +1,7 @@
 package env
 
 import (
-	"github.com/gnarlyskier/wander/verbs"
+	"github.com/cragcraig/wander/verbs"
 )
 
 type Interactable interface {

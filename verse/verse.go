@@ -1,7 +1,7 @@
 package verse
 
 import (
-	"github.com/gnarlyskier/wander/ascii"
+	"github.com/cragcraig/wander/ascii"
 )
 
 type VerseView interface {

@@ -1,7 +1,7 @@
 package nlp
 
 import (
-	"github.com/gnarlyskier/wander/env"
+	"github.com/cragcraig/wander/env"
 	"regexp"
 	"strings"
 )

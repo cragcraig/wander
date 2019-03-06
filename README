@@ -2,7 +2,7 @@ Wander is a text-based Multi-User Dungeon (MUD) written in Go.
 
 
 *** BUILDING THE SERVER ***
-go build github.com/gnarlyskier/wander
+go build github.com/cragcraig/wander
 
 *** RUNNING THE SERVER ***
 export PORT=4040
